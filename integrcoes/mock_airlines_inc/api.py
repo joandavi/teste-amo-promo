@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import FastAPI, HTTPException
 from decouple import config
 import requests
@@ -14,6 +16,8 @@ def somente_ida(iata_source: str, iata_destiny: str, departure_date: str):
     validate_airports((iata_source, iata_destiny))
     flights = get_flights(iata_source, iata_destiny, departure_date)
     for flight in flights["options"]:
+        departure_time = datetime.strptime(flight["departure_time"], '%Y-%m-%dT%H:%M:%S')
+        arrival_time = datetime.strptime(flight["arrival_time"], '%Y-%m-%dT%H:%M:%S')
         # Filling price
         fare = flight["price"]["fare"]
         fee = 40
@@ -26,8 +30,11 @@ def somente_ida(iata_source: str, iata_destiny: str, departure_date: str):
         # Filling meta
         distance = get_distance(iata_source, iata_destiny)
         flight["meta"]["range"] = distance
-        flight["meta"]["range"] = distance
-        flight["meta"]["range"] = distance
+        cruise_speed = (
+            distance/(arrival_time-departure_time).seconds
+        ) * 3600
+        flight["meta"]["cruise_speed_kmh"] = cruise_speed
+        flight["meta"]["cost_per_km"] = distance/fare
 
 
     return flights["options"]
