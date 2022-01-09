@@ -1,7 +1,7 @@
 from math import radians, cos, sin, asin, sqrt
 
 
-def haversine(lon1, lat1, lon2, lat2):
+def haversine(lat1, lon1, lat2, lon2):
     """
     Calculate the great circle distance in kilometers between two points 
     on the earth (specified in decimal degrees)

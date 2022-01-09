@@ -21,18 +21,23 @@ def somente_ida(iata_source: str, iata_destiny: str, departure_date: str):
             fee = new_fee
 
         total = fare + fee
-        flight["price"]["fees"]=fee
-        flight["price"]["total"]=total
+        flight["price"]["fees"] = fee
+        flight["price"]["total"] = total
         # Filling meta
-        distance = get_distance((iata_source, iata_destiny))
-        breakpoint()
+        distance = get_distance(iata_source, iata_destiny)
+        flight["meta"]["range"] = distance
+        flight["meta"]["range"] = distance
+        flight["meta"]["range"] = distance
+
 
     return flights["options"]
 
 
-def get_distance(airports):
-    distances = get_lat_long(airports)
-    
+def get_distance(iata_source, iata_destiny):
+    distances = get_lat_long((iata_source, iata_destiny))
+    distance = haversine(*distances[iata_source], *distances[iata_destiny])
+    return distance
+
 
 def get_flights(iata_source, iata_destiny, departure_date):
     response = requests.get(
@@ -53,15 +58,17 @@ def get_airports():
 
 def get_lat_long(airports_codes):
     airports = get_airports()
-    airports_list = []
+    airports_dict = {}
     for airport_code in airports_codes:
-        airports_list.append(
-            {
-                "{airport_code}":(
-                    airports[airport_code]["lat"],airports[airport_code]["lan"]
-                )
-            }
+        airports_dict[f"{airport_code}"] = (
+            airports[airport_code]["lat"],
+            airports[airport_code]["lon"]
         )
+        
+        
+    
+    return airports_dict
+
 
 def validate_airports(airports_codes):
     airports = get_airports()
