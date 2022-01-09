@@ -13,6 +13,11 @@ app = FastAPI()
 
 @app.get("/api/search/{iata_source}/{iata_destiny}/{departure_date}")
 def somente_ida(iata_source: str, iata_destiny: str, departure_date: str):
+    if iata_source == iata_destiny:
+        raise HTTPException(
+                status_code=400,
+                detail=f"AIRPORTS_CODE_CANNOT_BE_EQUAL"
+            )
     validate_airports((iata_source, iata_destiny))
     flights = get_flights(iata_source, iata_destiny, departure_date)
     for flight in flights["options"]:
@@ -36,8 +41,26 @@ def somente_ida(iata_source: str, iata_destiny: str, departure_date: str):
         flight["meta"]["cruise_speed_kmh"] = cruise_speed
         flight["meta"]["cost_per_km"] = distance/fare
 
-
     return flights["options"]
+
+
+@app.get(
+    "/api/search/{iata_source}/{iata_destiny}/{departure_date}/{arrival_date}"
+)
+def ida_e_volta(
+    iata_source: str, iata_destiny: str, departure_date: str, arrival_date: str
+):
+    if iata_source == iata_destiny:
+        raise HTTPException(
+                status_code=400,
+                detail=f"AIRPORTS_CODE_CANNOT_BE_EQUAL"
+            )
+    validate_airports((iata_source, iata_destiny))
+    validate_dates(departure_date, arrival_date)
+    departure_flights = get_flights(iata_source, iata_destiny, departure_date)
+    arrival_flights = get_flights(iata_destiny, iata_source, arrival_date)
+    return "asdasd"
+
 
 
 def get_distance(iata_source, iata_destiny):
@@ -85,3 +108,15 @@ def validate_airports(airports_codes):
                 status_code=400,
                 detail=f"AIRPORT_{airport_code}_IS_INVALID_OR_NOT_FOUND"
             )
+
+
+def validate_dates(departure_date, arrival_date):
+    departure_date = datetime.strptime(departure_date, '%Y-%m-%d')
+    arrival_date = datetime.strptime(arrival_date, '%Y-%m-%d')
+    if arrival_date < departure_date:
+        raise HTTPException(
+                status_code=400,
+                detail=f"DATE_ERRO"
+            )
+
+
